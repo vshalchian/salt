@@ -969,15 +969,13 @@ class MasterMinion:
         whitelist=None,
         ignore_config_errors=True,
     ):
-        self.opts = salt.config.minion_config(
-            opts["conf_file"], ignore_config_errors=ignore_config_errors, role="master"
+        self.opts = salt.config.mminion_config(
+            opts["conf_file"], opts, ignore_config_errors=ignore_config_errors
         )
-        self.opts.update(opts)
         self.whitelist = whitelist
-        self.opts["grains"] = salt.loader.grains(opts)
-        self.opts["pillar"] = {}
         self.mk_returners = returners
         self.mk_states = states
+
         self.mk_rend = rend
         self.mk_matcher = matcher
         self.gen_modules(initial_load=True)
@@ -2396,6 +2394,8 @@ class Minion(MinionBase):
         """
         Refresh the functions and returners.
         """
+        if not hasattr(self, "schedule"):
+            return
         log.debug("Refreshing modules. Notify=%s", notify)
         self.functions, self.returners, _, self.executors = self._load_modules(
             force_refresh, notify=notify
